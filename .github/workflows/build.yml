@@ -1,0 +1,60 @@
+name: Build and validate V0.2
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install OpenSCAD and mesh checker
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y openscad xvfb
+          python -m pip install trimesh
+      - name: Build reproducible STL meshes
+        run: bash scripts/build_stl.sh
+      - name: Validate exported meshes
+        run: python scripts/validate_meshes.py
+      - name: Validate offline test player
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          html = Path('software/test_player_reno3.html').read_text(encoding='utf-8')
+          scripts = re.findall(r'<script[^>]*>(.*?)</script>', html, flags=re.I | re.S)
+          assert len(scripts) == 1, 'Expected one embedded JavaScript block'
+          Path('/tmp/holodesk-test-player.js').write_text(scripts[0], encoding='utf-8')
+          PY
+          node --check /tmp/holodesk-test-player.js
+      - name: Generate assembly preview
+        run: |
+          mkdir -p assets
+          xvfb-run -a openscad -o assets/preview_reno3_100mm.png --imgsize=1280,850 --viewall hardware/holodesk_reno3_v02.scad
+      - name: Upload printable and preview artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: holodesk-reno3-v0.2-STL-and-preview
+          path: |
+            build/stl/*.stl
+            assets/preview_reno3_100mm.png
+      - name: Publish generated STL and preview to main
+        if: github.event_name != 'pull_request'
+        run: |
+          mkdir -p hardware/stl
+          cp build/stl/*.stl hardware/stl/
+          git add hardware/stl assets/preview_reno3_100mm.png
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'build: publish validated V0.2 STL and preview [skip ci]'
+            git push
+          fi
