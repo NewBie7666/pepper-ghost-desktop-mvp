@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<title>HOLODESK Reno3 V0.2 光学测试</title>
+<style>
+  *{box-sizing:border-box}html,body{margin:0;padding:0;height:100%;background:#000;color:#eee;font-family:Arial,'PingFang SC',sans-serif;overflow:hidden}
+  #screen{display:block;width:100vw;height:100vh;background:#000}
+  #menu{position:absolute;top:7px;left:7px;background:rgba(35,35,35,.88);border:1px solid #666;border-radius:6px;padding:7px;max-width:90vw;font-size:12px;line-height:1.3}
+  button{color:white;background:#444;border:1px solid #888;border-radius:4px;margin:2px;padding:6px;font-size:12px}
+  #help{color:#aaa;font-size:11px;padding-top:2px}
+</style>
+</head><body>
+<canvas id="screen"></canvas>
+<div id="menu">
+  <button onclick="mode='person'">人物轮廓</button>
+  <button onclick="mode='cross'">校准十字</button>
+  <button onclick="mode='grid'">尺寸网格</button>
+  <button onclick="mirrored=!mirrored">左右镜像</button>
+  <button onclick="rotation=(rotation+90)%360">旋转90°</button>
+  <button onclick="scale=Math.max(.4,scale-.1)">缩小</button>
+  <button onclick="scale=Math.min(1.6,scale+.1)">放大</button>
+  <button onclick="offsetX-=0.05">←</button>
+  <button onclick="offsetX+=0.05">→</button>
+  <button onclick="offsetY-=0.05">↑</button>
+  <button onclick="offsetY+=0.05">↓</button>
+  <button onclick="scale=1;rotation=90;mirrored=false;offsetX=0;offsetY=0">重置</button>
+  <button onclick="menu.style.display='none'">全屏隐藏按钮</button>
+  <div id="help">OPPO Reno3 元气版：屏幕朝上，横放；AMOLED 黑背景、关闭自动亮度。先用十字校准，再用方向键微调中心；默认旋转90°。刷新可恢复按钮。</div>
+</div>
+<script>
+var canvas=document.getElementById('screen'), ctx=canvas.getContext('2d');
+var menu=document.getElementById('menu'),mode='person',mirrored=false,scale=1,rotation=90,offsetX=0,offsetY=0;
+var start=Date.now();
+function resize(){canvas.width=window.innerWidth*window.devicePixelRatio;canvas.height=window.innerHeight*window.devicePixelRatio;}
+window.onresize=resize;resize();
+function stroke(color,width){ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineJoin='round';ctx.lineCap='round';}
+function line(x1,y1,x2,y2){ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();}
+function ellipse(x,y,rx,ry){ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.stroke();}
+function draw(){
+  var w=canvas.width,h=canvas.height,t=(Date.now()-start)/1000;
+  ctx.fillStyle='black';ctx.fillRect(0,0,w,h);
+  // The smaller screen dimension sets the test image size; centered and optically isolated.
+  var unit=Math.min(w,h)*.70*scale;
+  ctx.save();ctx.translate(w/2+offsetX*Math.min(w,h),h/2+offsetY*Math.min(w,h));ctx.rotate(rotation*Math.PI/180);ctx.scale(mirrored?-1:1,1);
+  stroke('#44dfff',Math.max(2,unit*.018));
+  ctx.shadowBlur=unit*.045;ctx.shadowColor='#00aaff';
+  if(mode==='person'){
+    var sway=Math.sin(t*1.35)*unit*.015;
+    ctx.save();ctx.translate(sway,0);
+    // Original stylized figure, not a likeness of any real person.
+    ellipse(0,-unit*.36,unit*.135,unit*.17);
+    ctx.beginPath();ctx.moveTo(-unit*.13,-unit*.20);ctx.quadraticCurveTo(-unit*.30,-unit*.14,-unit*.31,unit*.16);
+    ctx.lineTo(-unit*.17,unit*.25);ctx.lineTo(-unit*.14,unit*.03);
+    ctx.lineTo(-unit*.12,unit*.45);ctx.lineTo(0,unit*.48);ctx.lineTo(unit*.12,unit*.45);
+    ctx.lineTo(unit*.14,unit*.03);ctx.lineTo(unit*.17,unit*.25);ctx.lineTo(unit*.31,unit*.16);
+    ctx.quadraticCurveTo(unit*.30,-unit*.14,unit*.13,-unit*.20);ctx.stroke();
+    line(-unit*.13,-unit*.17,unit*.13,-unit*.17);
+    line(-unit*.22,unit*.17,-unit*.31,unit*.16);
+    line(unit*.22,unit*.17,unit*.31,unit*.16);
+    ctx.restore();
+    ctx.globalAlpha=.26+.15*Math.sin(t*1.6);stroke('#008aff',Math.max(1,unit*.008));
+    ellipse(0,unit*.51,unit*.33,unit*.048);
+  }else if(mode==='cross'){
+    line(-unit*.42,0,unit*.42,0);line(0,-unit*.45,0,unit*.45);
+    ellipse(0,0,unit*.23,unit*.23);
+    ctx.font=Math.max(12,unit*.12)+'px sans-serif';ctx.textAlign='center';ctx.fillStyle='#44dfff';ctx.fillText('UP',0,-unit*.53);
+    ctx.fillText('LEFT',-unit*.53,0);
+  }else {
+    var i;for(i=-4;i<=4;i++){stroke(i===0?'#d6f0ff':'#44dfff',Math.max(1,unit*(i===0?.013:.005)));
+    line(i*unit*.1,-unit*.4,i*unit*.1,unit*.4);line(-unit*.4,i*unit*.1,unit*.4,i*unit*.1);
+    }
+  }
+  ctx.restore();requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
+</script></body></html>
