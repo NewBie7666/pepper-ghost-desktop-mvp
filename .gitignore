@@ -1,0 +1,11 @@
+# Generated local outputs and temporary exports
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+*.blend1
+*.3mf
+*.gcode
+*.log
+build/
+*.tmp
