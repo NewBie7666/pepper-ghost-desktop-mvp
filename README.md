@@ -8,6 +8,27 @@
 
 ## 中文说明
 
+### STL 下载说明（Bambu Studio / 其他切片软件）
+
+**不要在 GitHub 的文件预览页使用浏览器“网页另存为”。** 浏览器可能把 HTML 网页保存为 `.stl`，Bambu Studio 会提示“此文件不包含任何几何数据”。
+
+推荐下载整个项目：[**Download ZIP（GitHub 仓库压缩包）**](https://github.com/NewBie7666/pepper-ghost-desktop-mvp/archive/refs/heads/main.zip)。解压后到 `hardware/stl/` 选择所需的文件，再直接拖入 Bambu Studio。
+
+如果只需要 10 × 10 cm、2 mm 亚克力板的打印件，请分别下载：
+
+- [bracket_100mm_2mm.stl — 原始 STL 文件](https://raw.githubusercontent.com/NewBie7666/pepper-ghost-desktop-mvp/main/hardware/stl/bracket_100mm_2mm.stl)，切片时复制成 **2 件**
+- [bridge_100mm.stl — 原始 STL 文件](https://raw.githubusercontent.com/NewBie7666/pepper-ghost-desktop-mvp/main/hardware/stl/bridge_100mm.stl)，打印 **1 件**
+
+注意：STL 原始文件头一般是 `solid OpenSCAD_Model`（ASCII 格式），**不应该**是 `<!DOCTYPE html>`。如果浏览器打开的是 GitHub 预览页面，请点击页面右上方的 Raw/Download raw file，而非保存网页。
+
+### 下载与切片常见错误
+
+- 错误：“此文件不包含任何几何数据” → 首先检查是否误把 HTML 网页存成 .stl。
+- 型号不符 → 100/150 mm 选择与亚克力边长一致的版本；2/3 mm 根据实测厚度选择。
+- 只打印一个支架 → 每套需要 **两件同型号 bracket + 一件 bridge**。
+- **STL 是封闭网格**只说明几何有效，不代表实物公差、支架受力或光学效果已通过验证。
+
+
 一个低成本、可修改、可 3D 打印的桌面人物反射成像实验，用 **OPPO Reno3 元气版**作为视频源，用现有 **100×100 mm**（或扩展 **150×150 mm**）亚克力板作为反射片。
 
 这个仓库是 V0.2 工程原型：先验证手机、亚克力、观众视线与素材方向，不承诺实际亮度、无重影或长时间可靠运行。
@@ -47,7 +68,7 @@ scripts/
   validate_meshes.py          # STL 封闭性验证
   build_stl.sh                # 从 SCAD 重新导出 STL
 .github/workflows/
-  validate.yml                # GitHub CI 检查
+  build.yml                   # GitHub CI 检查
  docs/README_使用说明.md        # 详细安装、光学与验收说明
 LICENSE                        # MIT
 CHANGELOG.md
